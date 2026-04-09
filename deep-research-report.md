@@ -410,7 +410,7 @@ Obsidian Git 插件提供了多种提交方式：
 **误操作恢复**：
 > `Ctrl/Cmd + P` → 输入 `undo commit` → 撤销上次提交 → 重新编辑后再提交 ✅
 
-## 四、高级配置与优化
+## 4、高级配置与优化
 
 ### 1. 自动同步设置
 
@@ -420,7 +420,7 @@ Obsidian Git 插件提供了多种提交方式：
 - **启用自动拉取和自动推送选项**
 - **设置提交信息模板**（如 "Auto commit: {{date}}"）
 
-## 4. 安装与配置 Claudian（Claude Code）插件  
+# 安装与配置 Claudian（Claude Code）插件  
 
 - **下载插件文件**：访问 Claudian GitHub 发布页（[github.com/YishenTu/claudian/releases/latest](https://github.com/YishenTu/claudian/releases/latest)），下载最新版本的 `main.js`、`manifest.json` 和 `styles.css` 三个文件。  
 - **创建插件文件夹**：在你的 Vault 目录下，进入 `.obsidian/plugins/` 文件夹（若不存在则创建），新建一个名为 `claudian` 的子文件夹，如：`/path/to/vault/.obsidian/plugins/claudian/`。  
