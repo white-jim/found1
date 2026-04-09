@@ -5,15 +5,170 @@
 - **创建或打开笔记库（Vault）**：首次运行时可创建一个新 Vault，或打开已有文件夹作为 Vault。Obsidian 会将此 Vault 作为知识库目录。  
 - **启用社区插件**：在 Obsidian 左下角点击设置，选择「社区插件」，先关闭安全模式（若提示开启），然后点击「浏览」，搜索并安装 **Obsidian Git** 插件。安装后启用该插件。  
 
-## 2. 配置 Git 仓库与远程同步  
-- **创建远程仓库**：在 GitHub/GitLab 等平台新建仓库，用于保存和同步 Obsidian Vault。记下仓库的 HTTPS 或 SSH 地址。  
-- **初始化本地仓库**：在 Obsidian Vault 根目录里使用 Git。在 Obsidian 内可打开命令面板（Ctrl/Cmd+P），执行 `Git: Initialize a new repo`（初始化新仓库）命令。或者在命令行运行 `git init`。这样 Vault 文件夹即成为一个 Git 仓库。  
-- **设置用户信息**：在 Git 插件设置页输入你的用户名和邮箱，或者在终端使用 `git config user.name "你的名字"` 和 `git config user.email "邮箱"` 设置，以确保提交记录带有正确作者信息。  
-- **连接远程仓库**：使用 Obsidian Git 插件的命令将本地仓库与远程关联：打开命令面板，选择 `Git: Edit remotes` 添加远程地址；或者运行 `Git: Clone an existing remote repo` 命令，输入仓库 URL 和凭证，直接克隆远程仓库。克隆后在 Obsidian 中打开该 Vault。  
+## 2. 配置 Git 仓库与远程同步
 
-> 注：也可以先在终端用 `git remote add origin [URL]` 添加远程仓库地址，然后在插件设置中启用“Auto pull on startup”自动拉取。
+### 2.1 创建远程仓库
 
-- **配置自动同步**：在 Obsidian Git 插件设置中，可以启用 **自动提交与同步** 功能。插件支持按计划自动执行“提交+拉取+推送”，也能在 Obsidian 启动时自动拉取远程更新。这样，多人编辑时可保持各端数据同步。  
+在 [GitHub](https://github.com/new)、[GitLab](https://gitlab.com/projects/new) 或 [Gitee](https://gitee.com/projects/new) 等平台新建仓库，用于保存和同步 Obsidian Vault。
+
+> ⚠️ **安全提示**：如果你的 Vault 包含敏感信息（如日记、密码等），建议将仓库设为 **Private（私有）**。公开仓库会暴露所有笔记内容。
+
+创建完成后记下仓库地址，支持以下两种格式：
+- **HTTPS**：`https://github.com/用户名/仓库名.git`（推荐新手使用，需要配置凭证管理器）
+- **SSH**：`git@github.com:用户名/仓库名.git`（需要预先配置 SSH 密钥，更方便免密操作）
+
+### 2.2 初始化本地仓库
+
+有两种方式将 Vault 文件夹初始化为 Git 仓库：
+
+**方式一：通过 Obsidian Git 插件（推荐）**
+1. 打开命令面板（`Ctrl/Cmd + P`）
+2. 输入并执行 `Git: Initialize a new repo`
+3. 插件会自动在当前 Vault 根目录创建 `.git` 文件夹
+
+**方式二：通过命令行**
+```bash
+# 进入 Vault 根目录
+cd /path/to/your/vault
+# 初始化 Git 仓库
+git init
+```
+
+### 2.3 配置 `.gitignore` 文件
+
+Vault 中并非所有文件都需要纳入版本控制。在 Vault 根目录创建 `.gitignore` 文件，排除不需要同步的内容：
+
+```gitignore
+# Obsidian 内部配置（通常不需要同步，但如果多人共用配置可以选择保留）
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/plugins/obsidian-git/data.json
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 临时/缓存文件
+.trash/
+*.tmp
+*.temp
+
+# Claudian 插件本地配置（含 API 密钥，切勿提交）
+.claudian/
+
+# 其他不需要同步的文件夹（根据实际情况添加）
+# 02-areas/private/
+```
+
+> 💡 **提示**：如果团队希望共享插件配置，可以将 `.obsidian/plugins/` 保留在版本控制中，但应排除 `workspace.json`（包含窗口布局等个人状态）和各插件的 `data.json`（含个人偏好设置）。
+
+### 2.4 设置 Git 用户信息
+
+确保每次提交都带有正确的作者信息：
+
+**方式一：命令行设置（仓库级别）**
+```bash
+# 仅对当前仓库生效
+git config user.name “你的名字”
+git config user.email “你的邮箱@example.com”
+```
+
+**方式二：命令行设置（全局级别）**
+```bash
+# 对所有仓库生效
+git config --global user.name “你的名字”
+git config --global user.email “你的邮箱@example.com”
+```
+
+**方式三：Obsidian Git 插件设置**
+在插件设置界面中也可以直接配置用户名和邮箱。
+
+### 2.5 配置 SSH 密钥（推荐用于免密推送）
+
+如果你使用 SSH 地址克隆仓库，建议配置 SSH 密钥以避免每次推送都输入密码：
+
+```bash
+# 1. 生成 SSH 密钥（使用你的 GitHub 邮箱）
+ssh-keygen -t ed25519 -C “你的邮箱@example.com”
+# 按提示选择保存位置（默认 ~/.ssh/id_ed25519），可设置密码短语
+
+# 2. 启动 SSH Agent 并添加密钥
+eval “$(ssh-agent -s)”
+ssh-add ~/.ssh/id_ed25519
+
+# 3. 复制公钥内容
+cat ~/.ssh/id_ed25519.pub
+# 将输出内容添加到 GitHub → Settings → SSH and GPG keys → New SSH key
+
+# 4. 测试连接
+ssh -T git@github.com
+# 看到类似 “Hi username! You've successfully authenticated” 即成功
+```
+
+> 🔒 Windows 用户可使用 `clip < ~/.ssh/id_ed25519.pub` 直接复制公钥到剪贴板；macOS 用户使用 `pbcopy < ~/.ssh/id_ed25519.pub`。
+
+### 2.6 连接远程仓库
+
+**场景 A：已有本地 Vault，连接到远程空仓库**
+```bash
+# 添加远程仓库地址
+git remote add origin https://github.com/用户名/仓库名.git
+# 首次推送并设置上游分支
+git push -u origin main
+```
+
+或在 Obsidian 中通过命令面板执行 `Git: Edit remotes`，输入名称 `origin` 和仓库 URL。
+
+**场景 B：从远程仓库克隆到本地（适合新成员加入）**
+1. 在命令面板执行 `Git: Clone an existing remote repo`
+2. 输入仓库 URL 和本地目标路径
+3. 克隆完成后用 Obsidian 打开该文件夹作为 Vault
+
+也可以通过命令行：
+```bash
+git clone https://github.com/用户名/仓库名.git
+# 然后在 Obsidian 中打开克隆下来的文件夹
+```
+
+### 2.7 配置自动同步
+
+在 Obsidian Git 插件设置（设置 → 社区插件 → Git → ⚙️）中配置以下关键选项：
+
+| 设置项 | 推荐值 | 说明 |
+|--------|--------|------|
+| **Auto save interval** | `5` - `15`（分钟） | 自动提交间隔，太频繁会产生大量提交记录 |
+| **Auto push interval** | `10` - `30`（分钟） | 自动推送间隔，设为 `0` 则禁用 |
+| **Auto pull interval** | `10` - `30`（分钟） | 自动拉取间隔，设为 `0` 则禁用 |
+| **Auto pull on boot** | ✅ 启用 | 每次 Obsidian 启动时自动拉取远程更新 |
+| **Pull before push** | ✅ 启用 | 推送前先拉取，减少冲突概率 |
+| **Commit message** | `vault backup: {{date}}` | 自动提交的默认消息模板 |
+| **Commit date format** | `YYYY-MM-DD HH:mm:ss` | 日期格式 |
+| **Sync method** | `merge` | 同步方式（merge 为最安全默认值） |
+| **Show status bar** | ✅ 启用 | 在底部状态栏显示 Git 状态 |
+
+> 💡 **多人协作建议**：
+> - 将自动提交间隔设为 **5-15 分钟**，推送间隔设为 **10-30 分钟**
+> - 务必启用 **Pull before push**（推送前拉取），这是预防冲突的关键设置
+> - 建议启用 **Auto pull on boot**，确保每次打开 Obsidian 都能获取最新内容
+> - 如果团队在同一文件上频繁编辑，考虑缩短拉取间隔
+
+### 2.8 HTTPS 凭证管理（Windows/macOS）
+
+使用 HTTPS 方式推送时，可配置凭证管理器避免每次输入密码：
+
+```bash
+# Windows（安装 Git for Windows 时自带）
+git config --global credential.helper manager
+
+# macOS（使用 macOS 钥匙串）
+git config --global credential.helper osxkeychain
+
+# 也可以使用 GitHub CLI 简化认证
+# 安装：https://cli.github.com/
+gh auth login
+# 按提示完成登录后，Git 操作会自动使用 gh 的认证
+```
 
 ## 3. 使用 Obsidian Git 插件进行同步  
 
